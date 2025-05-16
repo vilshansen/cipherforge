@@ -1,0 +1,95 @@
+CipherForge - Installation and Usage Instructions
+
+This document provides step-by-step instructions for installing Python
+and the necessary dependencies to run the CipherForge Python script.
+
+1. Install Python:
+
+   * Windows:
+      * Go to the official Python website:
+        [https://www.python.org/downloads/windows/](https://www.python.org/downloads/windows/)
+      * Download the latest stable version of Python 3.x.
+      * Run the installer.
+      * Important: During installation, make sure to check the box that
+        says "Add Python to PATH." This will allow you to run Python from
+        the command prompt.
+      * Complete the installation.
+   * macOS:
+      * macOS usually comes with Python pre-installed, but it might be
+        an older version. It's recommended to install a newer version.
+      * Go to the official Python website:
+        [https://www.python.org/downloads/macos/](https://www.python.org/downloads/macos/)
+      * Download the latest stable version of Python 3.x.
+      * Run the installer and follow the instructions.
+   * Linux (Ubuntu/Debian):
+      * Open a terminal.
+      * Run the following command: `sudo apt update`
+      * Then run: `sudo apt install python3 python3-pip`
+   * Linux (Fedora/CentOS):
+      * Open a terminal.
+      * Run the following command: `sudo dnf install python3 python3-pip`
+
+2. Verify Python Installation:
+
+   * Open a command prompt (Windows) or terminal (macOS/Linux).
+   * Type `python3 --version` (or `python --version` on windows if only
+     python 3 is installed) and press Enter.
+   * You should see the installed Python version.
+   * Type `pip3 --version` (or `pip --version` on windows) and press
+     enter. You should see the pip version.
+
+3. Install the cryptography Library:
+
+   * The CipherForge script requires the `cryptography` library.
+   * In the same command prompt or terminal, run the following command:
+     `pip3 install cryptography` (or `pip install cryptography` on
+     windows)
+   * Wait for the installation to complete.
+
+4. Download the CipherForge Script:
+
+   * Download the `CipherForge.py` script to a directory on your computer.
+
+5. Run the CipherForge Script:
+
+   * Open a command prompt or terminal.
+   * Navigate to the directory where you saved the `CipherForge.py` script
+     using the `cd` command (e.g., `cd Documents/CipherForge`).
+   * Encryption:
+      * To encrypt a file, use the following command:
+         * `python3 CipherForge.py -ef <input_file> <output_file>`
+         * Replace `<input_file>` with the path to the file you want to
+           encrypt.
+         * Replace `<output_file>` with the desired path for the
+           encrypted output file.
+         * If you wish to provide a password, include the argument
+           `-p "your password"`
+         * Example: `python3 CipherForge.py -ef my_secret.txt encrypted.txt
+           -p "MyStrongPassword"`
+      * The script will generate a password (or use the one you
+        provided) and display it on the console. Important: Copy and
+        save this password in a secure location.
+   * Decryption:
+      * To decrypt a file, use the following command:
+         * `python3 CipherForge.py -df <input_file> <output_file>`
+         * Replace `<input_file>` with the path to the encrypted file.
+         * Replace `<output_file>` with the desired path for the
+           decrypted output file.
+         * If you encrypted with a password argument, you must provide
+           the same password with the -p argument. Otherwise, you will
+           be prompted for your password.
+         * Example: `python3 CipherForge.py -df encrypted.txt decrypted.txt
+           -p "MyStrongPassword"`
+      * The script will decrypt the file.
+
+Troubleshooting:
+
+   * If you encounter errors related to `pip` or `cryptography`, ensure
+     that you have a stable internet connection and that your Python
+     installation is correct.
+   * If you get a "command not found" error when attempting to run
+     python or pip, then you did not add python to your path correctly
+     during installation. Try reinstalling python, and be sure to check
+     the add to path checkbox.
+   * If you have multiple versions of python installed, be sure to use
+     `python3` and `pip3` to ensure you are using the correct version.
