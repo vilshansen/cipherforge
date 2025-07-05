@@ -1,0 +1,11 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/windows/AES_GCM_Encryption/.vs
+/windows/AES_GCM_Encryption/bin/Debug/net8.0-windows
+/windows/AES_GCM_Encryption/obj
+*.user
+*.class
+/enc.txt
+/.vs
