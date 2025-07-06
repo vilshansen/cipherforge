@@ -9,3 +9,4 @@
 *.class
 /enc.txt
 /.vs
+/windows/AES_GCM_Encryption/bin/Release/net8.0-windows
