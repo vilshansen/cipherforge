@@ -37,7 +37,7 @@
             btnOk.Location = new Point(360, 43);
             btnOk.Name = "btnOk";
             btnOk.Size = new Size(75, 23);
-            btnOk.TabIndex = 2;
+            btnOk.TabIndex = 1;
             btnOk.Text = "OK";
             btnOk.UseVisualStyleBackColor = true;
             btnOk.Click += btnOk_Click;
@@ -48,7 +48,7 @@
             tbPasswordInput.Name = "tbPasswordInput";
             tbPasswordInput.PlaceholderText = "(Enter or paste password for decryption here.)";
             tbPasswordInput.Size = new Size(423, 23);
-            tbPasswordInput.TabIndex = 1;
+            tbPasswordInput.TabIndex = 0;
             // 
             // PasswordPromptForm
             // 
