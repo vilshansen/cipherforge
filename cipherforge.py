@@ -58,8 +58,8 @@ class CipherForge:
         derived_key = CipherForge.derive_key(password, salt)
         nonce = os.urandom(NONCE_SIZE_BYTES)
         aesgcm = AESGCM(derived_key)
-
         encrypted_chunks = []
+        
         try:
             with open(input_file, "rb") as f_in:
                 while chunk := f_in.read(CHUNK_SIZE):
@@ -76,11 +76,12 @@ class CipherForge:
 
         encrypted_data = salt + nonce + b"".join(encrypted_chunks)
         encrypted_data_b64 = base64.b64encode(encrypted_data).decode("utf-8")
-        ascii_armored = f"{START_TAG}\n{encrypted_data_b64}\n{END_TAG}"
-
         try:
             with open(output_file, "w", encoding="utf-8") as f_out:
-                f_out.write(ascii_armored)
+                f_out.write(f"{START_TAG}\n")
+                for i in range(0, len(encrypted_data_b64), 76):
+                    f_out.write(encrypted_data_b64[i:i+76] + "\n")
+                f_out.write(f"{END_TAG}\n")
         except PermissionError:
             print(f"Error: Permission denied writing to '{output_file}'.")
             return
@@ -118,7 +119,7 @@ class CipherForge:
             print("Error: Invalid ASCII-armored format: Start or end tag missing.")
             return
 
-        encrypted_data_b64 = "".join(lines[start_index + 1:end_index]).strip()
+        encrypted_data_b64 = "".join(lines[start_index + 1:end_index]).replace("\n", "").strip()
         try:
             encrypted_data = base64.b64decode(encrypted_data_b64)
         except base64.binascii.Error:

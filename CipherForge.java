@@ -86,7 +86,8 @@ public class CipherForge {
             // Write ASCII armor to the output file
             StringBuilder armoredOutput = new StringBuilder();
             armoredOutput.append(START_TAG).append("\n");
-            armoredOutput.append(Base64.getEncoder().encodeToString(encryptedData)).append("\n");
+			Base64.Encoder encoder = Base64.getMimeEncoder(76, "\n".getBytes());
+            armoredOutput.append(encoder.encodeToString(encryptedData)).append("\n");
             armoredOutput.append(END_TAG).append("\n");
 
             Files.writeString(Paths.get(outputFile), armoredOutput.toString(), StandardCharsets.UTF_8);
@@ -119,7 +120,7 @@ public class CipherForge {
                 throw new IllegalArgumentException("Invalid format: ASCII armor tags missing.");
             }
 
-            String base64Content = armoredContent.substring(armoredContent.indexOf(START_TAG) + START_TAG.length(), armoredContent.indexOf(END_TAG)).trim();
+            String base64Content = armoredContent.substring(armoredContent.indexOf(START_TAG) + START_TAG.length(), armoredContent.indexOf(END_TAG)).replaceAll("\\r?\\n", "").trim();
             byte[] combinedData = Base64.getDecoder().decode(base64Content);
 
             if (combinedData.length < SALT_SIZE + NONCE_SIZE) {
