@@ -18,21 +18,18 @@ public class CipherForge {
     private static final int SALT_SIZE = 16;
     private static final int NONCE_SIZE = 12;
     private static final int TAG_SIZE = 128; // 128-bit authentication tag
-    private static final int PASSWORD_LENGTH = 43;
+    private static final int PASSWORD_LENGTH = 32;
     private static final int PBKDF2_ITERATIONS = 1000000;
-    private static final String START_TAG = "-----BEGIN AES-GCM ENCRYPTED DATA-----";
-    private static final String END_TAG = "-----END AES-GCM ENCRYPTED DATA-----";
-    private static final String CHARACTER_POOL = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!#%&?.-"; // Expanded character pool
+    private static final String CHARACTER_POOL = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}";
     private static final int CHUNK_SIZE = 64 * 1024; // 64 KB chunks, same as Python
 
     public static String generateSecurePassword(int length) {
         SecureRandom random = new SecureRandom();
-        int poolSize = CHARACTER_POOL.length();
         StringBuilder password = new StringBuilder();
 
         while (password.length() < length) {
-            int s = random.nextInt(poolSize);
-            password.append(CHARACTER_POOL.charAt(s));
+            int idx = random.nextInt(CHARACTER_POOL.length());
+            password.append(CHARACTER_POOL.charAt(idx));
         }
 
         return password.toString();
@@ -42,6 +39,7 @@ public class CipherForge {
         if (password == null || password.isEmpty()) {
             throw new IllegalArgumentException("Password cannot be null or empty.");
         }
+        System.out.println("Deriving secure encryption key from password using PBKDF2 with 1,000,000 rounds...");
         PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, PBKDF2_ITERATIONS, KEY_SIZE);
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
         return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
@@ -58,9 +56,11 @@ public class CipherForge {
         String password = (userPassword == null || userPassword.isEmpty()) ? generateSecurePassword(PASSWORD_LENGTH) : userPassword;
         SecretKey key = deriveKey(password, salt);
 
+        System.out.println("Initializing AES-GCM cipher...");
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
         cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(TAG_SIZE, nonce));
 
+        System.out.println("Encrypting file...");
         try (FileInputStream fis = new FileInputStream(inputFile);
              FileOutputStream fos = new FileOutputStream(outputFile)) {
 
@@ -79,18 +79,6 @@ public class CipherForge {
             if (finalCiphertext != null) {
                 fos.write(finalCiphertext);
             }
-
-            // Prepare data for ASCII armoring
-            byte[] encryptedData = Files.readAllBytes(Paths.get(outputFile));
-
-            // Write ASCII armor to the output file
-            StringBuilder armoredOutput = new StringBuilder();
-            armoredOutput.append(START_TAG).append("\n");
-			Base64.Encoder encoder = Base64.getMimeEncoder(76, "\n".getBytes());
-            armoredOutput.append(encoder.encodeToString(encryptedData)).append("\n");
-            armoredOutput.append(END_TAG).append("\n");
-
-            Files.writeString(Paths.get(outputFile), armoredOutput.toString(), StandardCharsets.UTF_8);
 
             System.out.println("File encrypted successfully.");
             System.out.println("Password: " + password);
@@ -115,14 +103,7 @@ public class CipherForge {
         String password = new String(passwordChars);
 
         try {
-            String armoredContent = new String(Files.readAllBytes(Paths.get(inputFile)), StandardCharsets.UTF_8);
-            if (!armoredContent.contains(START_TAG) || !armoredContent.contains(END_TAG)) {
-                throw new IllegalArgumentException("Invalid format: ASCII armor tags missing.");
-            }
-
-            String base64Content = armoredContent.substring(armoredContent.indexOf(START_TAG) + START_TAG.length(), armoredContent.indexOf(END_TAG)).replaceAll("\\r?\\n", "").trim();
-            byte[] combinedData = Base64.getDecoder().decode(base64Content);
-
+            byte[] combinedData = Files.readAllBytes(Paths.get(inputFile));
             if (combinedData.length < SALT_SIZE + NONCE_SIZE) {
                 throw new IllegalArgumentException("Invalid encrypted data format.");
             }
@@ -140,7 +121,6 @@ public class CipherForge {
             cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(TAG_SIZE, nonce));
 
             try (FileOutputStream fos = new FileOutputStream(outputFile)) {
-                byte[] buffer = new byte[CHUNK_SIZE + TAG_SIZE / 8]; // Adjusted buffer size for GCM
                 int offset = 0;
                 while (offset < ciphertext.length) {
                     int length = Math.min(CHUNK_SIZE + TAG_SIZE / 8, ciphertext.length - offset);
@@ -156,7 +136,6 @@ public class CipherForge {
                     fos.write(finalDecrypted);
                 }
                 System.out.println("File decrypted successfully.");
-
             } catch (IOException e) {
                 System.err.println("Error during file decryption: " + e.getMessage());
                 throw e;
@@ -167,7 +146,6 @@ public class CipherForge {
                 // Clear the password from memory
                 java.util.Arrays.fill(passwordChars, ' ');
             }
-
         } catch (IOException e) {
             System.err.println("Error reading input file: " + e.getMessage());
             throw e;
@@ -175,7 +153,6 @@ public class CipherForge {
     }
 
     public static void main(String[] args) {
-        // dummy change
         if (args.length < 2) {
             System.out.println("Usage: java CipherForge (-ef <input_file> <output_file> [-p <password>] | -df <input_file> <output_file>)");
             return;
