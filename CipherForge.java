@@ -175,6 +175,7 @@ public class CipherForge {
     }
 
     public static void main(String[] args) {
+        // dummy change
         if (args.length < 2) {
             System.out.println("Usage: java CipherForge (-ef <input_file> <output_file> [-p <password>] | -df <input_file> <output_file>)");
             return;
