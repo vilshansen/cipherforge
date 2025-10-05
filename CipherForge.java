@@ -2,16 +2,11 @@ import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.Console;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.*;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Base64;
+import java.util.Arrays;
+import java.util.HexFormat;
 
 public class CipherForge {
     private static final int KEY_SIZE = 256;
@@ -21,7 +16,8 @@ public class CipherForge {
     private static final int PASSWORD_LENGTH = 32;
     private static final int PBKDF2_ITERATIONS = 1000000;
     private static final String CHARACTER_POOL = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}";
-    private static final int CHUNK_SIZE = 64 * 1024; // 64 KB chunks, same as Python
+    private static final int CHUNK_SIZE = 1024 * 1024; // 1024 KB chunks
+    private static final HexFormat hexFormat = HexFormat.of();
 
     public static String generateSecurePassword(int length) {
         SecureRandom random = new SecureRandom();
@@ -56,36 +52,31 @@ public class CipherForge {
         String password = (userPassword == null || userPassword.isEmpty()) ? generateSecurePassword(PASSWORD_LENGTH) : userPassword;
         SecretKey key = deriveKey(password, salt);
 
-        System.out.println("Initializing AES-GCM cipher...");
+        //Oracle JDK enforces a hard limit of 2 GB on input data for AES-GCM
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
         cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(TAG_SIZE, nonce));
 
-        System.out.println("Encrypting file...");
         try (FileInputStream fis = new FileInputStream(inputFile);
              FileOutputStream fos = new FileOutputStream(outputFile)) {
 
             fos.write(salt);
             fos.write(nonce);
 
-            byte[] buffer = new byte[CHUNK_SIZE];
-            int bytesRead;
-            while ((bytesRead = fis.read(buffer)) != -1) {
-                byte[] ciphertext = cipher.update(buffer, 0, bytesRead);
-                if (ciphertext != null) {
-                    fos.write(ciphertext);
+            try (CipherOutputStream cos = new CipherOutputStream(fos, cipher)) {
+                byte[] buffer = new byte[CHUNK_SIZE];
+                int bytesRead;
+                long totalBytesRead = 0;
+                long inputFileLength = new File(inputFile).length();
+
+                while ((bytesRead = fis.read(buffer)) != -1) {
+                    cos.write(buffer, 0, bytesRead);
+                    totalBytesRead += bytesRead;
+                    System.out.print("\rEncrypting file... " + ((totalBytesRead * 100) / inputFileLength) + "% done");
                 }
             }
-            byte[] finalCiphertext = cipher.doFinal();
-            if (finalCiphertext != null) {
-                fos.write(finalCiphertext);
-            }
 
-            System.out.println("File encrypted successfully.");
+            System.out.println("\nFile encrypted successfully.");
             System.out.println("Password: " + password);
-
-        } catch (IOException e) {
-            System.err.println("Error during file encryption: " + e.getMessage());
-            throw e;
         }
     }
 
@@ -97,64 +88,47 @@ public class CipherForge {
         }
         char[] passwordChars = console.readPassword("Enter the decryption password: ");
         if (passwordChars == null) {
-            System.out.println("Decryption password not provided.");
+            System.err.println("Decryption password not provided.");
             return;
         }
         String password = new String(passwordChars);
 
-        try {
-            byte[] combinedData = Files.readAllBytes(Paths.get(inputFile));
-            if (combinedData.length < SALT_SIZE + NONCE_SIZE) {
-                throw new IllegalArgumentException("Invalid encrypted data format.");
-            }
-
+        try (FileInputStream fis = new FileInputStream(inputFile)) {
             byte[] salt = new byte[SALT_SIZE];
-            byte[] nonce = new byte[NONCE_SIZE];
-            byte[] ciphertext = new byte[combinedData.length - SALT_SIZE - NONCE_SIZE];
+            if (fis.read(salt) != SALT_SIZE) throw new IOException("Could not read full salt.");
 
-            System.arraycopy(combinedData, 0, salt, 0, SALT_SIZE);
-            System.arraycopy(combinedData, SALT_SIZE, nonce, 0, NONCE_SIZE);
-            System.arraycopy(combinedData, SALT_SIZE + NONCE_SIZE, ciphertext, 0, ciphertext.length);
+            byte[] nonce = new byte[NONCE_SIZE];
+            if (fis.read(nonce) != NONCE_SIZE) throw new IOException("Could not read full nonce.");
 
             SecretKey key = deriveKey(password, salt);
+            //Oracle JDK enforces a hard limit of 2 GB on input data for AES-GCM
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(TAG_SIZE, nonce));
 
-            try (FileOutputStream fos = new FileOutputStream(outputFile)) {
-                int offset = 0;
-                while (offset < ciphertext.length) {
-                    int length = Math.min(CHUNK_SIZE + TAG_SIZE / 8, ciphertext.length - offset);
-                    byte[] chunk = java.util.Arrays.copyOfRange(ciphertext, offset, offset + length);
-                    byte[] decryptedChunk = cipher.update(chunk);
-                    if (decryptedChunk != null) {
-                        fos.write(decryptedChunk);
-                    }
-                    offset += length;
+            try (CipherInputStream cis = new CipherInputStream(fis, cipher);
+                 FileOutputStream fos = new FileOutputStream(outputFile)) {
+
+                byte[] buffer = new byte[CHUNK_SIZE];
+                int bytesRead;
+                long totalBytesRead = 0;
+                long inputFileLength = new File(inputFile).length();
+
+                while ((bytesRead = cis.read(buffer)) != -1) {
+                    fos.write(buffer, 0, bytesRead);
+                    totalBytesRead += bytesRead;
+                    System.out.print("\rDecrypting file... " + ((totalBytesRead * 100) / inputFileLength) + "% done");
                 }
-                byte[] finalDecrypted = cipher.doFinal();
-                if (finalDecrypted != null) {
-                    fos.write(finalDecrypted);
-                }
-                System.out.println("File decrypted successfully.");
-            } catch (IOException e) {
-                System.err.println("Error during file decryption: " + e.getMessage());
-                throw e;
-            } catch (AEADBadTagException e) {
-                System.err.println("Decryption failed: Incorrect password or corrupted data.");
-                throw e;
+
+                System.out.println("\nFile decrypted successfully.");
             } finally {
-                // Clear the password from memory
-                java.util.Arrays.fill(passwordChars, ' ');
+                Arrays.fill(passwordChars, ' ');
             }
-        } catch (IOException e) {
-            System.err.println("Error reading input file: " + e.getMessage());
-            throw e;
         }
     }
 
     public static void main(String[] args) {
         if (args.length < 2) {
-            System.out.println("Usage: java CipherForge (-ef <input_file> <output_file> [-p <password>] | -df <input_file> <output_file>)");
+            System.err.println("Usage: java CipherForge (-ef <input_file> <output_file> [-p <password>] | -df <input_file> <output_file>)");
             return;
         }
 
@@ -170,20 +144,30 @@ public class CipherForge {
                             break;
                         }
                     }
+                    long inputFileSize = new File(inputFile).length();
+                    if (inputFileSize > 2L * 1024L * 1024L * 1024L) {
+                        System.err.println("Error: Cannot encrypt files larger than 2GB");
+                        return;
+                    }
                     encryptFile(inputFile, outputFile, password);
                 } else {
-                    System.out.println("Usage: java CipherForge -ef <input_file> <output_file> [-p <password>]");
+                    System.err.println("Usage: java CipherForge -ef <input_file> <output_file> [-p <password>]");
                 }
             } else if (args[0].equals("-df")) {
                 if (args.length == 3) {
                     String inputFile = args[1];
                     String outputFile = args[2];
+                    long inputFileSize = new File(inputFile).length();
+                    if (inputFileSize > 2L * 1024L * 1024L * 1024L) {
+                        System.err.println("Error: Cannot decrypt files larger than 2GB");
+                        return;
+                    }
                     decryptFile(inputFile, outputFile);
                 } else {
-                    System.out.println("Usage: java CipherForge -df <input_file> <output_file>");
+                    System.err.println("Usage: java CipherForge -df <input_file> <output_file>");
                 }
             } else {
-                System.out.println("Invalid option. Use -ef for encrypt or -df for decrypt.");
+                System.err.println("Invalid option. Use -ef for encrypt or -df for decrypt.");
             }
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
