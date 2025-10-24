@@ -6,8 +6,12 @@ import java.io.*;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
-import java.util.HexFormat;
+import java.nio.charset.StandardCharsets;
 
+// Future improvements:
+//  - Use Argon2 for key derivation instead of PBKDF2
+//  - Implement multi-threaded encryption/decryption for large files
+//  - Consider AEAD modes other than GCM, such as AES-GCM-SIV
 public class CipherForge {
     private static final int KEY_SIZE = 256;
     private static final int SALT_SIZE = 16;
@@ -17,7 +21,8 @@ public class CipherForge {
     private static final int PBKDF2_ITERATIONS = 1000000;
     private static final String CHARACTER_POOL = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}";
     private static final int CHUNK_SIZE = 1024 * 1024; // 1024 KB chunks
-    private static final HexFormat hexFormat = HexFormat.of();
+    private static final byte[] FILE_MAGIC = "CIPHERFORGE-V00001".getBytes(StandardCharsets.UTF_8);
+
 
     public static String generateSecurePassword(int length) {
         SecureRandom random = new SecureRandom();
@@ -35,10 +40,18 @@ public class CipherForge {
         if (password == null || password.isEmpty()) {
             throw new IllegalArgumentException("Password cannot be null or empty.");
         }
-        System.out.println("Deriving secure encryption key from password using PBKDF2 with 1,000,000 rounds...");
+        System.out.println("Deriving secure encryption key from password using PBKDF2...");
         PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, PBKDF2_ITERATIONS, KEY_SIZE);
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
+        try {
+            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            SecretKey tmp = new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
+            return tmp;
+        } finally {
+            // Clear password material in spec if possible
+            try {
+                spec.clearPassword();
+            } catch (Exception ignored) {}
+        }
     }
 
     public static void encryptFile(String inputFile, String outputFile, String userPassword) throws Exception {
@@ -52,15 +65,43 @@ public class CipherForge {
         String password = (userPassword == null || userPassword.isEmpty()) ? generateSecurePassword(PASSWORD_LENGTH) : userPassword;
         SecretKey key = deriveKey(password, salt);
 
-        //Oracle JDK enforces a hard limit of 2 GB on input data for AES-GCM
+        // IMPORTANT: do NOT log generated password to stdout in real use.
+        if (userPassword == null || userPassword.isEmpty()) {
+            System.err.println("Warning: a random password was generated. Store it securely (not in logs): " + password);
+            System.err.println("If you want to provide a password, use -p <password>");
+        }
+
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-        cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(TAG_SIZE, nonce));
-
         try (FileInputStream fis = new FileInputStream(inputFile);
-             FileOutputStream fos = new FileOutputStream(outputFile)) {
+             FileOutputStream fos = new FileOutputStream(outputFile);
+             DataOutputStream dos = new DataOutputStream(fos)) {
 
-            fos.write(salt);
-            fos.write(nonce);
+            // Write versioned header: magic, iterations, salt len+salt, nonce len+nonce, original filename (UTF)
+            dos.write(FILE_MAGIC);
+            dos.writeInt(PBKDF2_ITERATIONS);
+            dos.writeInt(salt.length);
+            dos.write(salt);
+            dos.writeInt(nonce.length);
+            dos.write(nonce);
+            dos.writeUTF(new File(inputFile).getName());
+            dos.flush();
+
+            // Use header+filename as AAD
+            ByteArrayOutputStream headerStream = new ByteArrayOutputStream();
+            try (DataOutputStream hdos = new DataOutputStream(headerStream)) {
+                hdos.write(FILE_MAGIC);
+                hdos.writeInt(PBKDF2_ITERATIONS);
+                hdos.writeInt(salt.length);
+                hdos.write(salt);
+                hdos.writeInt(nonce.length);
+                hdos.write(nonce);
+                hdos.writeUTF(new File(inputFile).getName());
+                hdos.flush();
+            }
+            byte[] aad = headerStream.toByteArray();
+
+            cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(TAG_SIZE, nonce));
+            cipher.updateAAD(aad);
 
             try (CipherOutputStream cos = new CipherOutputStream(fos, cipher)) {
                 byte[] buffer = new byte[CHUNK_SIZE];
@@ -71,12 +112,17 @@ public class CipherForge {
                 while ((bytesRead = fis.read(buffer)) != -1) {
                     cos.write(buffer, 0, bytesRead);
                     totalBytesRead += bytesRead;
-                    System.out.print("\rEncrypting file... " + ((totalBytesRead * 100) / inputFileLength) + "% done");
+                    System.out.print("\rEncrypting file... " + ((totalBytesRead * 100) / Math.max(1, inputFileLength)) + "% done");
                 }
             }
 
             System.out.println("\nFile encrypted successfully.");
-            System.out.println("Password: " + password);
+        } finally {
+            // attempt to zero key material
+            try {
+                byte[] kb = key.getEncoded();
+                if (kb != null) Arrays.fill(kb, (byte) 0);
+            } catch (Exception ignored) {}
         }
     }
 
@@ -93,36 +139,73 @@ public class CipherForge {
         }
         String password = new String(passwordChars);
 
-        try (FileInputStream fis = new FileInputStream(inputFile)) {
-            byte[] salt = new byte[SALT_SIZE];
-            if (fis.read(salt) != SALT_SIZE) throw new IOException("Could not read full salt.");
+        try (FileInputStream fis = new FileInputStream(inputFile);
+             DataInputStream dis = new DataInputStream(fis)) {
 
-            byte[] nonce = new byte[NONCE_SIZE];
-            if (fis.read(nonce) != NONCE_SIZE) throw new IOException("Could not read full nonce.");
+            // Read header
+            byte[] magic = new byte[FILE_MAGIC.length];
+            dis.readFully(magic);
+            if (!java.util.Arrays.equals(magic, FILE_MAGIC)) {
+                throw new IOException("Unrecognized file format");
+            }
+            int iterations = dis.readInt();
+            int saltLen = dis.readInt();
+            if (saltLen <= 0 || saltLen > 1024) throw new IOException("Invalid salt length");
+            byte[] salt = new byte[saltLen];
+            dis.readFully(salt);
+
+            int nonceLen = dis.readInt();
+            if (nonceLen <= 0 || nonceLen > 1024) throw new IOException("Invalid nonce length");
+            byte[] nonce = new byte[nonceLen];
+            dis.readFully(nonce);
+
+            String originalName = dis.readUTF();
+
+            // Rebuild AAD exactly as encryption
+            ByteArrayOutputStream headerStream = new ByteArrayOutputStream();
+            try (DataOutputStream hdos = new DataOutputStream(headerStream)) {
+                hdos.write(magic);
+                hdos.writeInt(iterations);
+                hdos.writeInt(saltLen);
+                hdos.write(salt);
+                hdos.writeInt(nonceLen);
+                hdos.write(nonce);
+                hdos.writeUTF(originalName);
+                hdos.flush();
+            }
+            byte[] aad = headerStream.toByteArray();
 
             SecretKey key = deriveKey(password, salt);
-            //Oracle JDK enforces a hard limit of 2 GB on input data for AES-GCM
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-            cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(TAG_SIZE, nonce));
+            try {
+                cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(TAG_SIZE, nonce));
+                cipher.updateAAD(aad);
 
-            try (CipherInputStream cis = new CipherInputStream(fis, cipher);
-                 FileOutputStream fos = new FileOutputStream(outputFile)) {
+                try (CipherInputStream cis = new CipherInputStream(fis, cipher);
+                     FileOutputStream fos = new FileOutputStream(outputFile)) {
 
-                byte[] buffer = new byte[CHUNK_SIZE];
-                int bytesRead;
-                long totalBytesRead = 0;
-                long inputFileLength = new File(inputFile).length();
+                    byte[] buffer = new byte[CHUNK_SIZE];
+                    int bytesRead;
+                    long totalBytesRead = 0;
+                    long inputFileLength = new File(inputFile).length();
 
-                while ((bytesRead = cis.read(buffer)) != -1) {
-                    fos.write(buffer, 0, bytesRead);
-                    totalBytesRead += bytesRead;
-                    System.out.print("\rDecrypting file... " + ((totalBytesRead * 100) / inputFileLength) + "% done");
+                    while ((bytesRead = cis.read(buffer)) != -1) {
+                        fos.write(buffer, 0, bytesRead);
+                        totalBytesRead += bytesRead;
+                        System.out.print("\rDecrypting file... " + ((totalBytesRead * 100) / Math.max(1, inputFileLength)) + "% done");
+                    }
+
+                    System.out.println("\nFile decrypted successfully.");
                 }
-
-                System.out.println("\nFile decrypted successfully.");
             } finally {
-                Arrays.fill(passwordChars, ' ');
+                // zero key bytes
+                try {
+                    byte[] kb = key.getEncoded();
+                    if (kb != null) Arrays.fill(kb, (byte) 0);
+                } catch (Exception ignored) {}
             }
+        } finally {
+            Arrays.fill(passwordChars, ' ');
         }
     }
 
