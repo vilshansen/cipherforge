@@ -1,3 +1,5 @@
+package dk.cipherforge;
+
 import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
@@ -21,7 +23,7 @@ public class CipherForge {
     private static final int PBKDF2_ITERATIONS = 1000000;
     private static final String CHARACTER_POOL = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}";
     private static final int CHUNK_SIZE = 1024 * 1024; // 1024 KB chunks
-    private static final byte[] FILE_MAGIC = "CIPHERFORGE-V00001".getBytes(StandardCharsets.UTF_8);
+    private static final byte[] FILE_MAGIC_MARKER = "CIPHERFORGE-V00001".getBytes(StandardCharsets.UTF_8);
 
 
     public static String generateSecurePassword(int length) {
@@ -29,6 +31,7 @@ public class CipherForge {
         StringBuilder password = new StringBuilder();
 
         while (password.length() < length) {
+            // No modulo bias here!
             int idx = random.nextInt(CHARACTER_POOL.length());
             password.append(CHARACTER_POOL.charAt(idx));
         }
@@ -73,34 +76,26 @@ public class CipherForge {
 
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
         try (FileInputStream fis = new FileInputStream(inputFile);
-             FileOutputStream fos = new FileOutputStream(outputFile);
-             DataOutputStream dos = new DataOutputStream(fos)) {
+            FileOutputStream fos = new FileOutputStream(outputFile);
+            DataOutputStream dos = new DataOutputStream(fos)) {
 
-            // Write versioned header: magic, iterations, salt len+salt, nonce len+nonce, original filename (UTF)
-            dos.write(FILE_MAGIC);
-            dos.writeInt(PBKDF2_ITERATIONS);
-            dos.writeInt(salt.length);
-            dos.write(salt);
-            dos.writeInt(nonce.length);
-            dos.write(nonce);
-            dos.writeUTF(new File(inputFile).getName());
+            // Write header
+            ByteArrayOutputStream headerStream = new ByteArrayOutputStream();
+            DataOutputStream headerDos = new DataOutputStream(headerStream);
+            headerDos.write(FILE_MAGIC_MARKER);
+            headerDos.writeInt(PBKDF2_ITERATIONS);
+            headerDos.writeInt(salt.length);
+            headerDos.write(salt);
+            headerDos.writeInt(nonce.length);
+            headerDos.write(nonce);
+            headerDos.writeUTF(new File(inputFile).getName());
+            headerDos.flush();
+            byte[] aad = headerStream.toByteArray();
+            dos.write(aad);
             dos.flush();
 
-            // Use header+filename as AAD
-            ByteArrayOutputStream headerStream = new ByteArrayOutputStream();
-            try (DataOutputStream hdos = new DataOutputStream(headerStream)) {
-                hdos.write(FILE_MAGIC);
-                hdos.writeInt(PBKDF2_ITERATIONS);
-                hdos.writeInt(salt.length);
-                hdos.write(salt);
-                hdos.writeInt(nonce.length);
-                hdos.write(nonce);
-                hdos.writeUTF(new File(inputFile).getName());
-                hdos.flush();
-            }
-            byte[] aad = headerStream.toByteArray();
-
             cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(TAG_SIZE, nonce));
+            // Set AAD for authentication
             cipher.updateAAD(aad);
 
             try (CipherOutputStream cos = new CipherOutputStream(fos, cipher)) {
@@ -142,20 +137,23 @@ public class CipherForge {
         try (FileInputStream fis = new FileInputStream(inputFile);
              DataInputStream dis = new DataInputStream(fis)) {
 
-            // Read header
-            byte[] magic = new byte[FILE_MAGIC.length];
+            // Read and parse header. Unlike the standard read(byte[] b) method, which can return 
+            // after reading at least one byte (potentially less than the buffer size), readFully blocks
+            // and continues to read data until the requested number of bytes has been completely 
+            // filled in the destination buffer.
+
+            byte[] magic = new byte[FILE_MAGIC_MARKER.length];
             dis.readFully(magic);
-            if (!java.util.Arrays.equals(magic, FILE_MAGIC)) {
-                throw new IOException("Unrecognized file format");
+            if (!java.util.Arrays.equals(magic, FILE_MAGIC_MARKER)) {
+                throw new IOException("Unrecognized file format: invalid magic header.");
             }
             int iterations = dis.readInt();
             int saltLen = dis.readInt();
-            if (saltLen <= 0 || saltLen > 1024) throw new IOException("Invalid salt length");
+            if (saltLen <= 0 || saltLen > 1024) throw new IOException("Invalid salt length: " + saltLen);
             byte[] salt = new byte[saltLen];
             dis.readFully(salt);
-
             int nonceLen = dis.readInt();
-            if (nonceLen <= 0 || nonceLen > 1024) throw new IOException("Invalid nonce length");
+            if (nonceLen <= 0 || nonceLen > 1024) throw new IOException("Invalid nonce length: " + nonceLen);
             byte[] nonce = new byte[nonceLen];
             dis.readFully(nonce);
 
@@ -173,6 +171,7 @@ public class CipherForge {
                 hdos.writeUTF(originalName);
                 hdos.flush();
             }
+
             byte[] aad = headerStream.toByteArray();
 
             SecretKey key = deriveKey(password, salt);
