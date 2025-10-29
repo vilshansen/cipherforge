@@ -1,0 +1,154 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\peter\\OneDrive\\git\\cipherforge\\windows\\CipherForge\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{4CDD36E6-6C82-4296-B18E-DDBAA0995CA7}|CipherForge\\CipherForge.csproj|c:\\users\\peter\\onedrive\\git\\cipherforge\\windows\\cipherforge\\cipherforge\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4CDD36E6-6C82-4296-B18E-DDBAA0995CA7}|CipherForge\\CipherForge.csproj|solutionrelative:cipherforge\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4CDD36E6-6C82-4296-B18E-DDBAA0995CA7}|CipherForge\\CipherForge.csproj|c:\\users\\peter\\onedrive\\git\\cipherforge\\windows\\cipherforge\\cipherforge\\cipherforge.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4CDD36E6-6C82-4296-B18E-DDBAA0995CA7}|CipherForge\\CipherForge.csproj|solutionrelative:cipherforge\\cipherforge.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4CDD36E6-6C82-4296-B18E-DDBAA0995CA7}|CipherForge\\CipherForge.csproj|c:\\users\\peter\\onedrive\\git\\cipherforge\\windows\\cipherforge\\cipherforge\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{4CDD36E6-6C82-4296-B18E-DDBAA0995CA7}|CipherForge\\CipherForge.csproj|solutionrelative:cipherforge\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4CDD36E6-6C82-4296-B18E-DDBAA0995CA7}|CipherForge\\CipherForge.csproj|c:\\users\\peter\\onedrive\\git\\cipherforge\\windows\\cipherforge\\cipherforge\\passphrasegenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4CDD36E6-6C82-4296-B18E-DDBAA0995CA7}|CipherForge\\CipherForge.csproj|solutionrelative:cipherforge\\passphrasegenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4CDD36E6-6C82-4296-B18E-DDBAA0995CA7}|CipherForge\\CipherForge.csproj|c:\\users\\peter\\onedrive\\git\\cipherforge\\windows\\cipherforge\\cipherforge\\app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4CDD36E6-6C82-4296-B18E-DDBAA0995CA7}|CipherForge\\CipherForge.csproj|solutionrelative:cipherforge\\app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4CDD36E6-6C82-4296-B18E-DDBAA0995CA7}|CipherForge\\CipherForge.csproj|c:\\users\\peter\\onedrive\\git\\cipherforge\\windows\\cipherforge\\cipherforge\\app.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{4CDD36E6-6C82-4296-B18E-DDBAA0995CA7}|CipherForge\\CipherForge.csproj|solutionrelative:cipherforge\\app.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\peter\\OneDrive\\git\\cipherforge\\windows\\CipherForge\\CipherForge\\obj\\Debug\\net8.0-windows\\MainWindow.g.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:CipherForge\\obj\\Debug\\net8.0-windows\\MainWindow.g.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4CDD36E6-6C82-4296-B18E-DDBAA0995CA7}|CipherForge\\CipherForge.csproj|c:\\users\\peter\\onedrive\\git\\cipherforge\\windows\\cipherforge\\cipherforge\\assemblyinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4CDD36E6-6C82-4296-B18E-DDBAA0995CA7}|CipherForge\\CipherForge.csproj|solutionrelative:cipherforge\\assemblyinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 6,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "PassphraseGenerator.cs",
+              "DocumentMoniker": "C:\\Users\\peter\\OneDrive\\git\\cipherforge\\windows\\CipherForge\\CipherForge\\PassphraseGenerator.cs",
+              "RelativeDocumentMoniker": "CipherForge\\PassphraseGenerator.cs",
+              "ToolTip": "C:\\Users\\peter\\OneDrive\\git\\cipherforge\\windows\\CipherForge\\CipherForge\\PassphraseGenerator.cs",
+              "RelativeToolTip": "CipherForge\\PassphraseGenerator.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-27T19:46:58.401Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "App.xaml",
+              "DocumentMoniker": "C:\\Users\\peter\\OneDrive\\git\\cipherforge\\windows\\CipherForge\\CipherForge\\App.xaml",
+              "RelativeDocumentMoniker": "CipherForge\\App.xaml",
+              "ToolTip": "C:\\Users\\peter\\OneDrive\\git\\cipherforge\\windows\\CipherForge\\CipherForge\\App.xaml",
+              "RelativeToolTip": "CipherForge\\App.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-10-27T19:40:46.588Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "AssemblyInfo.cs",
+              "DocumentMoniker": "C:\\Users\\peter\\OneDrive\\git\\cipherforge\\windows\\CipherForge\\CipherForge\\AssemblyInfo.cs",
+              "RelativeDocumentMoniker": "CipherForge\\AssemblyInfo.cs",
+              "ToolTip": "C:\\Users\\peter\\OneDrive\\git\\cipherforge\\windows\\CipherForge\\CipherForge\\AssemblyInfo.cs",
+              "RelativeToolTip": "CipherForge\\AssemblyInfo.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-27T18:14:12.992Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "App.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\peter\\OneDrive\\git\\cipherforge\\windows\\CipherForge\\CipherForge\\App.xaml.cs",
+              "RelativeDocumentMoniker": "CipherForge\\App.xaml.cs",
+              "ToolTip": "C:\\Users\\peter\\OneDrive\\git\\cipherforge\\windows\\CipherForge\\CipherForge\\App.xaml.cs",
+              "RelativeToolTip": "CipherForge\\App.xaml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-27T18:14:01.494Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "CipherForge.cs",
+              "DocumentMoniker": "C:\\Users\\peter\\OneDrive\\git\\cipherforge\\windows\\CipherForge\\CipherForge\\CipherForge.cs",
+              "RelativeDocumentMoniker": "CipherForge\\CipherForge.cs",
+              "ToolTip": "C:\\Users\\peter\\OneDrive\\git\\cipherforge\\windows\\CipherForge\\CipherForge\\CipherForge.cs",
+              "RelativeToolTip": "CipherForge\\CipherForge.cs",
+              "ViewState": "AgIAAGsAAAAAAAAAAAA2wGUAAAAsAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-27T18:08:24.581Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "MainWindow.xaml",
+              "DocumentMoniker": "C:\\Users\\peter\\OneDrive\\git\\cipherforge\\windows\\CipherForge\\CipherForge\\MainWindow.xaml",
+              "RelativeDocumentMoniker": "CipherForge\\MainWindow.xaml",
+              "ToolTip": "C:\\Users\\peter\\OneDrive\\git\\cipherforge\\windows\\CipherForge\\CipherForge\\MainWindow.xaml",
+              "RelativeToolTip": "CipherForge\\MainWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-10-27T18:03:45.008Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "MainWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\peter\\OneDrive\\git\\cipherforge\\windows\\CipherForge\\CipherForge\\MainWindow.xaml.cs",
+              "RelativeDocumentMoniker": "CipherForge\\MainWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\peter\\OneDrive\\git\\cipherforge\\windows\\CipherForge\\CipherForge\\MainWindow.xaml.cs",
+              "RelativeToolTip": "CipherForge\\MainWindow.xaml.cs",
+              "ViewState": "AgIAACgAAAAAAAAAAAAswEIAAAAgAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-27T18:03:44.227Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "MainWindow.g.cs",
+              "DocumentMoniker": "C:\\Users\\peter\\OneDrive\\git\\cipherforge\\windows\\CipherForge\\CipherForge\\obj\\Debug\\net8.0-windows\\MainWindow.g.cs",
+              "RelativeDocumentMoniker": "CipherForge\\obj\\Debug\\net8.0-windows\\MainWindow.g.cs",
+              "ToolTip": "C:\\Users\\peter\\OneDrive\\git\\cipherforge\\windows\\CipherForge\\CipherForge\\obj\\Debug\\net8.0-windows\\MainWindow.g.cs",
+              "RelativeToolTip": "CipherForge\\obj\\Debug\\net8.0-windows\\MainWindow.g.cs",
+              "ViewState": "AgIAAFgAAAAAAAAAAADgv3YAAABZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-27T18:15:06.817Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
