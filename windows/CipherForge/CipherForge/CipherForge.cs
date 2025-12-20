@@ -44,9 +44,6 @@ namespace CipherForge
                 throw new ArgumentException("Input string and password must be provided.");
             }
 
-            byte[] keyBytes = null;
-            byte[] inputBytes = Encoding.UTF8.GetBytes(plainText);
-
             try
             {
                 // 1. Generate random salt and nonce
@@ -59,7 +56,7 @@ namespace CipherForge
                 }
 
                 // 2. Derive Key
-                keyBytes = DeriveKey(password, salt);
+                byte[] keyBytes = DeriveKey(password, salt);
 
                 // 3. Define Associated Authenticated Data (AAD)
                 // Using the salt and nonce as AAD ensures integrity of the parameters.
@@ -68,12 +65,13 @@ namespace CipherForge
                 Buffer.BlockCopy(nonce, 0, aad, salt.Length, nonce.Length);
 
                 // 4. Encrypt
+                byte[] inputBytes = Encoding.UTF8.GetBytes(plainText);
                 int cipherTextLength = inputBytes.Length;
                 byte[] cipherTextWithTag = new byte[cipherTextLength + TAG_SIZE_BYTES];
                 Span<byte> cipherTextSpan = cipherTextWithTag.AsSpan(0, cipherTextLength);
                 Span<byte> tagSpan = cipherTextWithTag.AsSpan(cipherTextLength, TAG_SIZE_BYTES);
 
-                using (var aesGcm = new AesGcm(keyBytes))
+                using (var aesGcm = new AesGcm(keyBytes, TAG_SIZE_BYTES))
                 {
                     aesGcm.Encrypt(nonce, inputBytes, cipherTextSpan, tagSpan, aad);
                 }
@@ -93,10 +91,6 @@ namespace CipherForge
             {
                 throw new CryptographicException("String encryption failed.", ex);
             }
-            finally
-            {
-                if (keyBytes != null) Array.Fill(keyBytes, (byte)0);
-            }
         }
 
         // --- STRING DECRYPTION ROUTINE ---
@@ -111,8 +105,6 @@ namespace CipherForge
             {
                 throw new ArgumentException("Encrypted string and password must be provided.");
             }
-
-            byte[] keyBytes = null;
 
             try
             {
@@ -129,7 +121,7 @@ namespace CipherForge
                 byte[] cipherTextWithTag = inputBytes.Skip(SALT_SIZE + NONCE_SIZE).ToArray();
 
                 // 2. Derive Key
-                keyBytes = DeriveKey(password, salt);
+                byte[] keyBytes = DeriveKey(password, salt);
 
                 // 3. Define Associated Authenticated Data (AAD)
                 byte[] aad = new byte[salt.Length + nonce.Length];
@@ -143,7 +135,7 @@ namespace CipherForge
                 Span<byte> cipherTextSpan = cipherTextWithTag.AsSpan(0, cipherTextLength);
                 Span<byte> tagSpan = cipherTextWithTag.AsSpan(cipherTextLength, TAG_SIZE_BYTES);
 
-                using (var aesGcm = new AesGcm(keyBytes))
+                using (var aesGcm = new AesGcm(keyBytes, TAG_SIZE_BYTES))
                 {
                     // Decrypt and validate tag against AAD. Throws CryptographicException on failure.
                     aesGcm.Decrypt(nonce, cipherTextSpan, tagSpan, plainTextBytes, aad);
@@ -160,10 +152,6 @@ namespace CipherForge
             catch (Exception ex)
             {
                 throw new CryptographicException("String decryption failed.", ex);
-            }
-            finally
-            {
-                if (keyBytes != null) Array.Fill(keyBytes, (byte)0);
             }
         }
     }

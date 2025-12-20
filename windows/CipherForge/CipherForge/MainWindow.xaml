@@ -5,9 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="CipherForge" 
-        Height="557" Width="859" 
+        Height="640" Width="859" 
         MinHeight="450" MinWidth="650"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        Icon="/logo/cipherforge_logo.ico">
 
     <Window.Resources>
         <Style TargetType="Button">
@@ -65,16 +66,11 @@
                      AcceptsReturn="True" 
                      VerticalScrollBarVisibility="Auto"
                      Padding="12"
-                     FontFamily="Consolas"
-                     FontSize="13"
+                     FontFamily="Courier New"
+                     FontSize="16"
                      Background="White"
                      BorderBrush="#CCCCCC" 
-                     BorderThickness="1"
-                     xml:space="preserve"><TextBox.Text><![CDATA[The convergence of mathematical precision and linguistic diversity is captured in equations like eⁱᴫ + 1 = 0 alongside geometric forms such as ⬡, ⟁, and ⦽. When data travels through the 'ether,' it often encounters multi-byte sequences like the Japanese ⚡プログラミング⚡ or the intricate curves of Devanagari script: नमस्ते दुनिया. Ensuring that the encryption buffer handles these without truncation is vital, especially when mixing standard ASCII with high-range symbols like 𝔖𝔬𝔪𝔢 𝔊𝔬𝔱𝔥𝔦𝔠 𝔗𝔢𝔵𝔱 and arrows like ⇄ ⇅ ⇆ ⇇ ⇈ ⇉ ⇊.
-
-In the realm of globalized software, the application must gracefully manage the transition between the Cyrillic alphabet (Привет, как дела?) and the elegance of Arabic calligraphy (السلام عليكم). Cryptographic integrity means that even a string of miscellaneous technical symbols—⌗, ⌧, ⌨, ⌬, ⍟—must be reproducible down to the last bit after decryption. Furthermore, testing the AcceptsReturn feature with line breaks between heavy-duty emojis like 🛸, 🧬, 🛡️, and 🗝️ ensures that the TextBox and the UTF-8 encoder are perfectly synced.
-
-Finally, we push the boundaries by introducing combining diacritics and 'Zalgo' style text to verify that the spacing and memory allocation remain stable: H̷e̷l̷l̷o̷ ̷W̷o̷r̷l̷d̷. By including Currency symbols from around the globe—€, £, ¥, ₹, ₿—and musical notation like ♩, ♪, ♫, ♬, the encryption logic is forced to process varying byte-lengths per character. If the system can successfully encrypt this paragraph and return the exact same 100% accurate string, it confirms that the PBKDF2 key derivation and GCM mode are functioning with complete character-set transparency.]]></TextBox.Text></TextBox>
+                     BorderThickness="1"></TextBox>
 
             <Grid Grid.Row="1" Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
@@ -88,28 +84,22 @@ Finally, we push the boundaries by introducing combining diacritics and 'Zalgo' 
                          Height="35" 
                          VerticalContentAlignment="Center"
                          Padding="8,0"
-                         FontFamily="Consolas"
+                         FontFamily="Courier New"
+                         FontSize="16"
                          Background="White"
                          BorderBrush="#CCCCCC" 
                          BorderThickness="1"/>
 
                 <Button x:Name="ButtonGeneratePassphrase"
-                        Grid.Column="1"
-                        Content="Generate"
-                        Width="100" 
-                        Height="35"
-                        Margin="10,0,0,0"
-                        Background="#D9E7FF"
-                        Click="ButtonGeneratePassphrase_Click"/>
-
-                <Button x:Name="CopyPassphrase"
                         Grid.Column="2"
-                        Content="Copy"
-                        Width="100" 
+                        Content="Generate new passphrase"
+                        Width="250" 
                         Height="35"
                         Margin="10,0,0,0"
                         Background="#D9E7FF"
-                        Click="ButtonCopyPassphrase_Click"/>
+                        FontSize="16"
+                        FontWeight="SemiBold"
+                        Click="ButtonGeneratePassphrase_Click"/>
             </Grid>
 
             <Grid Grid.Row="2">
@@ -122,8 +112,8 @@ Finally, we push the boundaries by introducing combining diacritics and 'Zalgo' 
                         Grid.Column="0"
                         Content="Encrypt" 
                         Margin="0,0,5,0" 
-                        Height="50" 
-                        FontSize="15"
+                        Height="35" 
+                        FontSize="16"
                         FontWeight="SemiBold"
                         Background="#CCE0FF"
                         Click="ButtonEncrypt_Click"/>
@@ -132,8 +122,8 @@ Finally, we push the boundaries by introducing combining diacritics and 'Zalgo' 
                         Grid.Column="1"
                         Content="Decrypt" 
                         Margin="5,0,0,0" 
-                        Height="50" 
-                        FontSize="15"
+                        Height="35" 
+                        FontSize="16"
                         FontWeight="SemiBold"
                         Background="#CCE0FF"
                         Click="ButtonDecrypt_Click"/>
